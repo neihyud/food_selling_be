@@ -6,11 +6,15 @@ const { body } = require('express-validator')
 const { validateRequest } = require('../middlewares/validate-request')
 
 const validateEmpty = () => {
-  return body('*').trim().notEmpty()
+  return [
+    body('username').trim().notEmpty(),
+    body('password').trim().notEmpty()
+  ]
 }
 
-router.post('/login', validateEmpty(), validateRequest, authController.login)
+router.post('/admin/login', validateEmpty(), validateRequest, authController.login)
 
 router.post('/register', validateEmpty(), validateRequest, authController.register)
+router.post('/login', validateEmpty(), validateRequest, authController.login)
 
 module.exports = router

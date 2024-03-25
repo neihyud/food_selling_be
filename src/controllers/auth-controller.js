@@ -2,7 +2,7 @@ const jwt = require('jsonwebtoken')
 const bcrypt = require('bcrypt')
 const User = require('../models/User')
 const config = require('../config/index')
-const AuthService = require('../services/auth')
+const AuthService = require('../services/auth-service')
 const BadRequestError = require('../errors/bad-request-error')
 
 exports.login = async (req, res, next) => {
@@ -23,17 +23,25 @@ exports.login = async (req, res, next) => {
     throw new BadRequestError('Invalid password')
   }
 
-  const accessToken = jwt.sign(
-    { userId: user._id },
-    config.accessTokenSecret
-  )
+  try {
+    const accessToken = jwt.sign(
+      { userId: user._id },
+      config.tokenSecret
+    )
 
-  res.status(200).json({
-    success: true,
-    message: 'Login successful',
-    accessToken,
-    user
-  })
+    res.status(200).json({
+      success: true,
+      message: 'Login successful',
+      accessToken,
+      user
+    })
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error
+
+    })
+  }
 }
 
 exports.register = async (req, res) => {
@@ -56,8 +64,11 @@ exports.register = async (req, res) => {
         .json({ success: false, errors: { username: 'Username already taken' } })
     }
 
+    const role = 'user'
+
     const hashedPassword = await bcrypt.hash(password, salt)
-    const newUser = new User({ username, password: hashedPassword })
+
+    const newUser = new User({ username, password: hashedPassword, role })
     await newUser.save()
 
     const accessToken = jwt.sign(
