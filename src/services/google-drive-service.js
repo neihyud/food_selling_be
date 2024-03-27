@@ -24,17 +24,17 @@ const setFilePublic = async (fileId) => {
 }
 
 const GoogleDriveService = {
-  uploadFile: async ({ name, type = 'image/jpg' }) => {
+  uploadFile: async ({ originalNameImg: name, path: pathFile, type = 'image/jpg' }) => {
     try {
       const createFile = await drive.files.create({
         requestBody: {
           name,
           mimeType: type,
-          parents: ['']
+          parents: ['1vfK-fIFZZpq_Lo3n0hVvdDtYJ-MoYPxM']
         },
         media: {
           mimeType: type,
-          body: fs.createReadStream(path.join(__dirname, '/../cr7.jpg'))
+          body: fs.createReadStream(path.join(process.cwd(), `/${pathFile}`))
         }
       })
 
@@ -44,6 +44,8 @@ const GoogleDriveService = {
       const getUrl = await setFilePublic(fileId)
 
       console.log(getUrl.data)
+
+      return getUrl?.data?.webContentLink || getUrl?.data?.webViewLink
     } catch (error) {
       console.error(error)
     }
