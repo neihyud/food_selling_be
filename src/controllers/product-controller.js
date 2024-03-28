@@ -4,9 +4,12 @@ const Product = require('../models/Product')
 const GoogleDriveService = require('../services/google-drive-service')
 
 const getProducts = async (req, res) => {
-  const listProduct = await Product.find({})
-
-  res.status(200).send(listProduct)
+  try {
+    const listProduct = await Product.find().populate({ path: 'category_id', select: 'name' }).exec()
+    return res.status(200).send(listProduct)
+  } catch (error) {
+    return res.status(400).send(error.message)
+  }
 }
 
 const getProduct = async (req, res) => {
@@ -14,7 +17,7 @@ const getProduct = async (req, res) => {
 
   const product = await Product.findOne({ _id: id })
 
-  res.status(200).send(product)
+  res.status(200).send({ success: true, data: product })
 }
 
 const createProduct = async (req, res) => {
@@ -26,8 +29,6 @@ const createProduct = async (req, res) => {
     // eslint-disable-next-line camelcase
     category_id
   } = req.body
-
-  console.log('req.body', req.body)
 
   const path = req?.file?.path || ''
   const originalNameImg = req?.file?.originalname?.split('.')[0] || new Date().toTimeString()
@@ -57,9 +58,14 @@ const createProduct = async (req, res) => {
 const updateProduct = async (req, res) => {
   const { id } = req.params
 
-  const { name, description, status } = req.body
+  const {
+    name,
+    description,
+    status = 1,
+    price
+  } = req.body
 
-  const product = await Product.findOneAndUpdate({ _id: id }, { name, description, status }, {
+  const product = await Product.findOneAndUpdate({ _id: id }, { name, description, status, price }, {
     new: true
   })
 

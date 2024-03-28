@@ -10,7 +10,7 @@ router.post('/product', upload.single('img'), productController.createProduct)
 
 router.get('/product/:id', productController.getProduct)
 router.put('/product/:id', productController.updateProduct)
-router.delete('product/:id', productController.deleteProduct)
+router.delete('/product/:id', productController.deleteProduct)
 
 router.get('/category', productController.getListCategory)
 router.post('/category', productController.createCategory)

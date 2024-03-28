@@ -23,6 +23,17 @@ const setFilePublic = async (fileId) => {
   }
 }
 
+const handleGetIdImg = (pathGDrive) => {
+  const idIndex = pathGDrive.indexOf('id=')
+  if (idIndex !== -1) {
+    const ampersandIndex = pathGDrive.indexOf('&', idIndex)
+
+    return pathGDrive.substring(idIndex + 3, ampersandIndex !== -1 ? ampersandIndex : undefined)
+  }
+
+  return pathGDrive.replace('file/d', 'thumbnail?id=')
+}
+
 const GoogleDriveService = {
   uploadFile: async ({ originalNameImg: name, path: pathFile, type = 'image/jpg' }) => {
     try {
@@ -45,7 +56,11 @@ const GoogleDriveService = {
 
       console.log(getUrl.data)
 
-      return getUrl?.data?.webContentLink || getUrl?.data?.webViewLink
+      // return getUrl?.data?.webContentLink
+
+      const idImg = handleGetIdImg(getUrl?.data?.webContentLink)
+
+      return `https://drive.google.com/thumbnail?id=${idImg}`
     } catch (error) {
       console.error(error)
     }
