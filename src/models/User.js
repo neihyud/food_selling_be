@@ -16,6 +16,10 @@ const UserSchema = new Schema(
     role: {
       type: String,
       required: true
+    },
+    status: {
+      type: Boolean,
+      default: 1
     }
   },
   {
