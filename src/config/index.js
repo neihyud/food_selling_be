@@ -9,6 +9,7 @@ const configs = {
   clientIdGDrive: process.env.CLIENT_ID,
   clientSecretGDrive: process.env.CLIENT_SECRET,
   refreshTokenGDrive: process.env.REFRESH_TOKEN_GD,
+  stripePrivateKey: process.env.STRIPE_PRIVATE_KEY,
 
   roles: {
     admin: 'admin',

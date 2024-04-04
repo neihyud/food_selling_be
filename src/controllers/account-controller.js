@@ -1,3 +1,4 @@
+/* eslint-disable camelcase */
 const configs = require('../config')
 const { BadRequestError } = require('../errors/bad-request-error')
 const User = require('../models/User')
