@@ -1,5 +1,6 @@
 /* eslint-disable camelcase */
 const Address = require('../models/Address')
+const User = require('../models/User')
 
 exports.getListAddressUser = async (req, res) => {
   const { id } = req.params
@@ -48,4 +49,16 @@ exports.getAddress = async (req, res) => {
 
   const data = await Address.findOne({ user_id: userId, _id: id })
   return res.status(200).send({ success: true, address: data })
+}
+
+exports.getUser = async (req, res) => {
+  return res.status(200).send({ success: true, data: req.user })
+}
+
+exports.updateUser = async (req, res) => {
+  const userId = req.userId
+  const { username } = req.body
+  await User.findOneAndUpdate({ _id: userId }, { username })
+
+  return res.status(200).send({ success: true })
 }

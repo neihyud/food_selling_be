@@ -18,7 +18,7 @@ const verifyToken = async (req, res, next) => {
   }
 
   try {
-    const decoded = jwt.verify(token, config.accessTokenSecret)
+    const decoded = jwt.verify(token, config.tokenSecret)
 
     const user = await User.findOne({ _id: decoded.userId })
 
@@ -27,6 +27,8 @@ const verifyToken = async (req, res, next) => {
     }
 
     req.userId = decoded.userId
+
+    delete user.password
     req.user = user
 
     next()

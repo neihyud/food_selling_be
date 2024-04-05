@@ -15,6 +15,6 @@ const validateEmpty = () => {
 router.post('/admin/login', validateEmpty(), validateRequest, authController.login)
 
 router.post('/register', validateEmpty(), validateRequest, authController.register)
-router.post('/login', validateEmpty(), validateRequest, authController.login)
+router.post('/login', authController.login)
 
 module.exports = router
