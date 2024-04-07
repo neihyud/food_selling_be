@@ -21,10 +21,6 @@ const AddressSchema = new Schema(
     email: {
       type: String
     },
-    area: {
-      type: String,
-      required: true
-    },
     address: {
       type: String,
       required: true
