@@ -4,7 +4,7 @@ const { NotFoundError } = require('./src/errors/not-found-error')
 const { errorHandler } = require('./src/middlewares/error-handler')
 const { port } = require('./src/config/index')
 const route = require('./src/routers')
-
+require('./src/connections/socket-io')
 const app = express()
 
 const cors = require('cors')

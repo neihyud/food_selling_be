@@ -2,24 +2,26 @@ const mongoose = require('mongoose')
 
 const { Schema } = mongoose
 
-const OrderItemSchema = new Schema(
+const ChatSchema = new Schema(
   {
-    order_id: {
+    sender_id: {
       type: mongoose.Types.ObjectId,
-      ref: 'Order'
+      ref: 'User'
     },
-    product_name: {
+    message: {
       type: String
     },
-    qty: {
-      type: Number
+    receiver_id: {
+      type: mongoose.Types.ObjectId,
+      ref: 'User'
     },
-    price: {
-      type: Number,
-      require: true
+    seen: {
+      type: Boolean,
+      default: false
     }
   },
   {
+    timestamps: true,
     toJSON: {
       timestamps: true,
       transform (doc, ret) {
@@ -30,4 +32,4 @@ const OrderItemSchema = new Schema(
   }
 )
 
-module.exports = mongoose.model('OrderItem', OrderItemSchema)
+module.exports = mongoose.model('Chat', ChatSchema)

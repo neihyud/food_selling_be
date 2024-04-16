@@ -8,27 +8,30 @@ const OrderSchema = new Schema(
       type: mongoose.Types.ObjectId,
       ref: 'User'
     },
-    address_id: {
-      type: mongoose.Types.ObjectId,
-      ref: 'Address'
+    address: {
+      type: String
     },
     order_status: {
       type: String,
       required: true
     },
-    transaction_id: {
-      type: String
-    },
-    subTotal: {
+    sub_total: {
       type: Number,
       default: 0
     },
     payment_method: {
       type: String,
       default: 'cash'
+    },
+    payment_status: {
+      type: String
+    },
+    transaction_id: {
+      type: String
     }
   },
   {
+    timestamps: true,
     toJSON: {
       timestamps: true,
       transform (doc, ret) {

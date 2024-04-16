@@ -87,6 +87,13 @@ const deleteProduct = async (req, res) => {
   return res.status(200).send({ success: true, data: { id, name: product.name } })
 }
 
+const getProductByCategoryId = async (req, res) => {
+  const { id } = req.params
+
+  const product = await Product.find({ category_id: id })
+  return res.status(200).send({ success: true, data: product })
+}
+
 const getListCategory = async (req, res) => {
   const listCategory = await Category.find({})
 
@@ -149,5 +156,6 @@ module.exports = {
   getCategory,
   updateCategory,
   deleteCategory,
-  createCategory
+  createCategory,
+  getProductByCategoryId
 }
