@@ -1,11 +1,22 @@
+/* eslint-disable camelcase */
 const { BadRequestError } = require('../errors/bad-request-error')
 const Category = require('../models/Category')
 const Product = require('../models/Product')
 const GoogleDriveService = require('../services/google-drive-service')
 
 const getProducts = async (req, res) => {
+  const query = req.query
+
+  const filter = { status: 1 }
+  if (query.categoryId) {
+    filter.category_id = query.categoryId
+  }
+  if (query.search) {
+    const regex = new RegExp(query.search, 'i')
+    filter.name = { $regex: regex }
+  }
   try {
-    const listProduct = await Product.find().populate({ path: 'category_id', select: 'name' }).exec()
+    const listProduct = await Product.find(filter).populate({ path: 'category_id', select: 'name' }).exec()
     return res.status(200).send(listProduct)
   } catch (error) {
     return res.status(400).send(error.message)
@@ -26,7 +37,7 @@ const createProduct = async (req, res) => {
     description,
     status = 1,
     price,
-    // eslint-disable-next-line camelcase
+    offer_price,
     category_id
   } = req.body
 
@@ -36,7 +47,6 @@ const createProduct = async (req, res) => {
 
   const pathToImg = await GoogleDriveService.uploadFile({ originalNameImg, path, mineType })
 
-  console.log('pathToImg ', pathToImg)
   try {
     const newProduct = new Product({
       name,
@@ -44,6 +54,7 @@ const createProduct = async (req, res) => {
       status,
       thumb_img: pathToImg.toString(),
       price,
+      offer_price,
       // eslint-disable-next-line camelcase
       category_id
     })
@@ -90,7 +101,7 @@ const deleteProduct = async (req, res) => {
 const getProductByCategoryId = async (req, res) => {
   const { id } = req.params
 
-  const product = await Product.find({ category_id: id })
+  const product = await Product.find({ category_id: id }).populate({ path: 'category_id', select: 'name' }).exec()
   return res.status(200).send({ success: true, data: product })
 }
 

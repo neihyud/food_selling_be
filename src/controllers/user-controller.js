@@ -1,6 +1,8 @@
 /* eslint-disable camelcase */
+const { BadRequestError } = require('../errors/bad-request-error')
 const Address = require('../models/Address')
 const User = require('../models/User')
+const bcrypt = require('bcrypt')
 
 exports.getListAddressUser = async (req, res) => {
   const userId = req.userId
@@ -64,11 +66,11 @@ exports.getUser = async (req, res) => {
 
 exports.updateUser = async (req, res) => {
   const userId = req.userId
-  const { username, email } = req.body
+  const { name, email } = req.body
 
   const updateData = {}
-  if (username) {
-    updateData.username = username
+  if (name) {
+    updateData.name = name
   }
 
   if (email) {
@@ -76,6 +78,27 @@ exports.updateUser = async (req, res) => {
   }
 
   await User.findOneAndUpdate({ _id: userId }, { ...updateData })
+
+  return res.status(200).send({ success: true })
+}
+
+exports.updatePassword = async (req, res) => {
+  const { oldPassword, newPassword } = req.body
+  const userId = req.userId
+
+  const user = await User.findOne({ _id: userId })
+  if (!user) {
+    throw new BadRequestError('User not found')
+  }
+
+  const passwordValid = await bcrypt.compare(oldPassword, user.password)
+
+  if (!passwordValid) {
+    throw new BadRequestError('Password invalid')
+  }
+  const hashedPassword = await bcrypt.hash(newPassword, 10)
+
+  await User.updateOne({ _id: userId }, { password: hashedPassword })
 
   return res.status(200).send({ success: true })
 }

@@ -23,6 +23,9 @@ const UserSchema = new Schema(
     status: {
       type: Boolean,
       default: 1
+    },
+    name: {
+      type: String
     }
   },
   {

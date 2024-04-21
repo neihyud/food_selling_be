@@ -33,7 +33,7 @@ const verifyToken = async (req, res, next) => {
 
     next()
   } catch (error) {
-    throw new Error('Invalid token')
+    throw new NotAuthorizedError('Invalid token')
   }
 }
 

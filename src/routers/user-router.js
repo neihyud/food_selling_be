@@ -10,4 +10,6 @@ router.delete('/address/:id', userController.deleteAddress)
 router.get('/', userController.getUser)
 router.post('/', userController.updateUser)
 
+router.put('/password', userController.updatePassword)
+
 module.exports = router

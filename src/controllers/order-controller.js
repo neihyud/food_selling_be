@@ -7,11 +7,6 @@ exports.createOrder = async (req, res) => {
 
 }
 
-// const storeItems = new Map([
-//   [1, { priceInCents: 10000, name: 'Learn React Today' }],
-//   [2, { priceInCents: 20000, name: 'Learn CSS Today' }]
-// ])
-
 const validationAddress = (data) => {
   return {
     first_name: data.first_name,
@@ -51,6 +46,7 @@ exports.createCheckoutSession = async (req, res) => {
         price: item.offer_price * 100 || item.price * 100,
         qty: item.quantity
       })
+      console.log('item.offer_price == ', item.offer_price * 100)
 
       orderItems.push(newOrderItem.save())
     })
@@ -67,7 +63,7 @@ exports.createCheckoutSession = async (req, res) => {
             product_data: {
               name: item.name
             },
-            unit_amount: item.offer_price || item.price
+            unit_amount: item.offer_price * 100 || item.price * 100
           },
           quantity: item.quantity
         }
@@ -119,4 +115,10 @@ exports.getListOrderItem = async (req, res) => {
   const data = await OrderItem.find({ order_id: orderId })
 
   return res.status(200).send(data)
+}
+
+exports.getListOrderAdmin = async (req, res) => {
+  const listOrder = await Order.find({})
+
+  return res.status(200).send(listOrder)
 }
