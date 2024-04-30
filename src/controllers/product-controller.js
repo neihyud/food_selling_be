@@ -46,7 +46,6 @@ const createProduct = async (req, res) => {
   const mineType = req.file.mimetype || ''
 
   const pathToImg = await GoogleDriveService.uploadFile({ originalNameImg, path, mineType })
-
   try {
     const newProduct = new Product({
       name,

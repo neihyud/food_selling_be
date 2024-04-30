@@ -3,6 +3,7 @@ const { BadRequestError } = require('../errors/bad-request-error')
 const Address = require('../models/Address')
 const User = require('../models/User')
 const bcrypt = require('bcrypt')
+const GoogleDriveService = require('../services/google-drive-service')
 
 exports.getListAddressUser = async (req, res) => {
   const userId = req.userId
@@ -75,6 +76,16 @@ exports.updateUser = async (req, res) => {
 
   if (email) {
     updateData.email = email
+  }
+
+  const path = req?.file?.path || ''
+
+  if ((path && req?.user?.img !== path)) {
+    const originalNameImg = req?.file?.originalname?.split('.')[0] || new Date().toTimeString()
+    const mineType = req.file.mimetype || ''
+
+    const pathToImg = await GoogleDriveService.uploadFile({ originalNameImg, path, mineType })
+    updateData.img = pathToImg
   }
 
   await User.findOneAndUpdate({ _id: userId }, { ...updateData })

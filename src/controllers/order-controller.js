@@ -1,3 +1,4 @@
+/* eslint-disable camelcase */
 const configs = require('../config')
 const Order = require('../models/Order')
 const OrderItem = require('../models/OrderItem')
@@ -43,10 +44,9 @@ exports.createCheckoutSession = async (req, res) => {
       const newOrderItem = new OrderItem({
         order_id: orderTemp.id,
         product_name: item.name,
-        price: item.offer_price * 100 || item.price * 100,
+        price: item.offer_price || item.price,
         qty: item.quantity
       })
-      console.log('item.offer_price == ', item.offer_price * 100)
 
       orderItems.push(newOrderItem.save())
     })
@@ -121,4 +121,56 @@ exports.getListOrderAdmin = async (req, res) => {
   const listOrder = await Order.find({})
 
   return res.status(200).send(listOrder)
+}
+
+exports.getListOrderAdminPend = async (req, res) => {
+  const listOrder = await Order.find({ order_status: 'pending' })
+
+  return res.status(200).send(listOrder)
+}
+
+exports.getListOrderAdminDelivered = async (req, res) => {
+  const listOrder = await Order.find({ order_status: 'delivered' })
+  return res.status(200).send(listOrder)
+}
+
+exports.getListOrderAdminDeclined = async (req, res) => {
+  const listOrder = await Order.find({ order_status: 'declined' })
+  return res.status(200).send(listOrder)
+}
+
+exports.getListOrderAdminInProcess = async (req, res) => {
+  const listOrder = await Order.find({ order_status: 'in_process' })
+  return res.status(200).send(listOrder)
+}
+
+exports.getListOrderAdminToday = async (req, res) => {
+  const listOrder = await Order.find({})
+
+  return res.status(200).send(listOrder)
+}
+
+// admin
+exports.getOrder = async (req, res) => {
+  const { id } = req.params
+  const order = await Order.findOne({ _id: id })
+
+  return res.status(200).send(order)
+}
+
+exports.updateOrder = async (req, res) => {
+  const { id } = req.params
+  const { order_status, payment_status } = req.body
+  const dataUpdate = { }
+
+  if (order_status) {
+    dataUpdate.order_status = order_status
+  }
+
+  if (payment_status) {
+    dataUpdate.payment_status = payment_status
+  }
+  const order = await Order.findOneAndUpdate({ _id: id }, dataUpdate)
+
+  return res.status(200).send(order)
 }
