@@ -4,6 +4,8 @@ const Address = require('../models/Address')
 const User = require('../models/User')
 const bcrypt = require('bcrypt')
 const GoogleDriveService = require('../services/google-drive-service')
+const Review = require('../models/Review')
+const Product = require('../models/Product')
 
 exports.getListAddressUser = async (req, res) => {
   const userId = req.userId
@@ -112,4 +114,26 @@ exports.updatePassword = async (req, res) => {
   await User.updateOne({ _id: userId }, { password: hashedPassword })
 
   return res.status(200).send({ success: true })
+}
+
+exports.review = async (req, res) => {
+  const { review, rate, product_id } = req.body
+  const userId = req.userId
+
+  const newReview = new Review({
+    rate,
+    review,
+    user_id: userId,
+    product_id
+  })
+
+  await newReview.save()
+  return res.status(200).send({ success: true })
+}
+
+exports.getReview = async (req, res) => {
+  const { productId } = req.params
+  const listReview = await Review.find({ product_id: productId }).populate('user_id', 'name img')
+
+  return res.status(200).send(listReview)
 }

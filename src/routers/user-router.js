@@ -14,4 +14,7 @@ router.post('/', upload.single('img'), userController.updateUser)
 
 router.put('/password', userController.updatePassword)
 
+router.post('/review', userController.review)
+router.get('/review/:productId', userController.getReview)
+
 module.exports = router

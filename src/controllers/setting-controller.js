@@ -28,7 +28,7 @@ exports.createSlider = async (req, res) => {
 
 exports.updateSlider = async (req, res) => {
   const { offer, title, sub_title, short_description } = req.body
-  const path = req?.file?.path()
+  const path = req?.file?.path || ''
   const { id } = req.params
 
   const body = {}
