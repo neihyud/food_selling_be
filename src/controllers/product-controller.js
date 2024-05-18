@@ -3,7 +3,7 @@ const { BadRequestError } = require('../errors/bad-request-error')
 const Category = require('../models/Category')
 const Product = require('../models/Product')
 const GoogleDriveService = require('../services/google-drive-service')
-const { getProductsInfo } = require('../services/advanced-query')
+const { getProductsInfo, getTopRateProduct, getTopPopularProduct } = require('../services/advanced-query')
 
 // const getProductsV2 = async (req, res) => {
 //   const query = req.query
@@ -168,7 +168,7 @@ const deleteCategory = async (req, res) => {
 }
 
 const insertManyProduct = async (req, res) => {
-  const { data, category_id } = req.body
+  const { data } = req.body
   const { type } = req.query
 
   try {
@@ -184,6 +184,18 @@ const insertManyProduct = async (req, res) => {
   }
 }
 
+const getRateProduct = async (req, res) => {
+  const products = await getTopRateProduct()
+
+  return res.status(200).send({ success: true, data: products })
+}
+
+const getTopProductPopular = async (req, res) => {
+  const products = await getTopPopularProduct()
+
+  return res.status(200).send({ success: true, data: products })
+}
+
 module.exports = {
   getProducts,
   getProduct,
@@ -196,5 +208,7 @@ module.exports = {
   deleteCategory,
   createCategory,
   getProductByCategoryId,
-  insertManyProduct
+  insertManyProduct,
+  getRateProduct,
+  getTopProductPopular
 }

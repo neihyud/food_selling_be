@@ -8,6 +8,10 @@ const OrderItemSchema = new Schema(
       type: mongoose.Types.ObjectId,
       ref: 'Order'
     },
+    product_id: {
+      type: mongoose.Types.ObjectId,
+      ref: 'Product'
+    },
     product_name: {
       type: String
     },
@@ -19,7 +23,9 @@ const OrderItemSchema = new Schema(
       require: true
     }
   },
+
   {
+    timestamps: true,
     toJSON: {
       timestamps: true,
       transform (doc, ret) {

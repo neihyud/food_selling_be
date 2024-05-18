@@ -1,7 +1,9 @@
 /* eslint-disable camelcase */
 const configs = require('../config')
 const Order = require('../models/Order')
+const User = require('../models/User')
 const OrderItem = require('../models/OrderItem')
+const { getTotalSubTotalOfCompletedOrders } = require('../services/advanced-query')
 const stripe = require('stripe')(configs.stripePrivateKey)
 
 exports.createOrder = async (req, res) => {
@@ -45,7 +47,8 @@ exports.createCheckoutSession = async (req, res) => {
         order_id: orderTemp.id,
         product_name: item.name,
         price: item.offer_price || item.price,
-        qty: item.quantity
+        qty: item.quantity,
+        product_id: item.id || item._id
       })
 
       orderItems.push(newOrderItem.save())
@@ -59,7 +62,7 @@ exports.createCheckoutSession = async (req, res) => {
       line_items: listCartItems.map(item => {
         return {
           price_data: {
-            currency: 'usd',
+            currency: 'VND',
             product_data: {
               name: item.name
             },
@@ -102,6 +105,30 @@ exports.stripeSuccess = async (req, res) => {
   return res.status(200).send({ data: session })
 }
 
+exports.refundPayment = async (req, res) => {
+  const { id } = req.params
+
+  const order = await Order.findOne({ _id: id }).select('transaction_id')
+
+  const paymentIntentId = order.transaction_id
+  try {
+    const refund = await stripe.refunds.create({
+      payment_intent: paymentIntentId
+    })
+
+    if (refund.success) {
+      await Order.findOneAndUpdate({ _id: id }, { order_status: 'declined' })
+      return res.status(200).send({ success: true })
+    }
+
+    return res.status(400).send({ success: false, message: 'Refund fail!' })
+  } catch (error) {
+    console.error('Error creating refund:', error)
+
+    return res.status(400).send({ success: false, message: 'Refund fail!' })
+  }
+}
+
 exports.getListOrder = async (req, res) => {
   const userId = req.userId
   const listOrder = await Order.find({ user_id: userId })
@@ -118,7 +145,7 @@ exports.getListOrderItem = async (req, res) => {
 }
 
 exports.getListOrderAdmin = async (req, res) => {
-  const listOrder = await Order.find({})
+  const listOrder = await Order.find({}).populate({ path: 'user_id', select: 'name' })
 
   return res.status(200).send(listOrder)
 }
@@ -173,4 +200,22 @@ exports.updateOrder = async (req, res) => {
   const order = await Order.findOneAndUpdate({ _id: id }, dataUpdate)
 
   return res.status(200).send(order)
+}
+
+exports.getInfoDashboard = async (req, res) => {
+  const orderCount = await Order.countDocuments()
+  const userCount = await User.countDocuments({ role: 'user' })
+
+  const earnCount = await getTotalSubTotalOfCompletedOrders()
+
+  return res.status(200).send({ orderCount, userCount, earnCount })
+}
+
+exports.getInfoStatusOrder = async (req, res) => {
+  const orderCountSuccess = await Order.countDocuments({ order_status: 'success' })
+  const orderCountInProcess = await Order.countDocuments({ order_status: 'pending' })
+  const orderCountDelivered = await Order.countDocuments({ order_status: 'delivered' })
+  const orderCountDeclined = await Order.countDocuments({ order_status: 'declined' })
+
+  return res.status(200).send({ orderCountSuccess, orderCountInProcess, orderCountDelivered, orderCountDeclined })
 }

@@ -1,5 +1,8 @@
 const Product = require('../models/Product')
 const mongoose = require('mongoose')
+const Review = require('../models/Review')
+const OrderItem = require('../models/OrderItem')
+const Order = require('../models/Order')
 
 // const getProductsInfo = async () => {
 //   try {
@@ -158,6 +161,127 @@ const getProductsInfo = async (query) => {
   }
 }
 
+const oneMonthAgo = new Date()
+oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1)
+
+const getTopRateProduct = async (query) => {
+  const products = await Review.aggregate([
+    {
+      $match: {
+        createdAt: { $gte: oneMonthAgo }
+      }
+    },
+    {
+      $group: {
+        _id: '$product_id',
+        averageRating: { $avg: '$rate' }
+      }
+    },
+    {
+      $sort: {
+        averageRating: -1
+      }
+    },
+    {
+      $limit: 3
+    },
+    {
+      $lookup: {
+        from: 'products',
+        localField: '_id',
+        foreignField: '_id',
+        as: 'productInfo'
+      }
+    }
+  ])
+
+  return products
+}
+
+const getTopPopularProduct = async () => {
+  try {
+    const topProducts = await OrderItem.aggregate([
+      // {
+      //   $match: {
+      //     createdAt: { $gte: oneMonthAgo }
+      //   }
+      // },
+      {
+        $group: {
+          _id: '$product_id',
+          count: { $sum: 1 }
+        }
+      },
+      {
+        $sort: { count: -1 }
+      },
+      {
+        $limit: 3
+      },
+      {
+        $lookup: {
+          from: 'products',
+          localField: '_id',
+          foreignField: '_id',
+          as: 'productDetails'
+        }
+      },
+      {
+        $unwind: '$productDetails'
+      },
+      {
+        $project: {
+          // _id: 0,
+          // product_id: '$_id',
+          count: 1,
+          productDetails: {
+            name: 1,
+            price: 1,
+            offer_price: 1,
+            thumb_img: 1
+          }
+        }
+      }
+    ])
+
+    return topProducts
+  } catch (error) {
+    console.error(error)
+    throw error
+  }
+}
+
+const getTotalSubTotalOfCompletedOrders = async () => {
+  try {
+    const result = await Order.aggregate([
+      {
+        $match: { order_status: 'completed' }
+      },
+      {
+        $group: {
+          _id: null,
+          totalSubTotal: { $sum: '$sub_total' }
+        }
+      },
+      {
+        $project: {
+          _id: 0,
+          totalSubTotal: 1
+        }
+      }
+    ])
+
+    return result.length > 0 ? result[0].totalSubTotal : 0
+  } catch (error) {
+    console.error(error)
+    throw error
+  }
+}
+
 module.exports = {
-  getProductsInfo
+  getProductsInfo,
+  getTopRateProduct,
+  getTopPopularProduct,
+  getTotalSubTotalOfCompletedOrders
+
 }
