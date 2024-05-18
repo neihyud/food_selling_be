@@ -17,12 +17,17 @@ io.on('connection', (socket) => {
   socket.on('message', async data => {
     console.log('data ============ ', data)
 
+    if (!data.token) {
+      return
+    }
+
     const decoded = jwt.verify(data.token, configs.tokenSecret)
+
     const admin = await User.find({ role: 'admin' })
 
     io.emit('messageResponse', {
       message: data.message,
-      sender_id: data.receiver_id ? admin.id : decoded.userId,
+      sender_id: data.receiver_id ? admin.id : decoded?.userId,
       receiver_id: data.receiver_id ? data.receiver_id : admin.id,
       ...data
     })

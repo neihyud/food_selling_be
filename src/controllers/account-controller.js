@@ -27,7 +27,7 @@ exports.createStaff = async (req, res) => {
         .json({ success: false, errors: { username: 'Username already taken' } })
     }
 
-    const role = 'user'
+    const role = 'staff'
 
     const hashedPassword = await bcrypt.hash(password, salt)
 
