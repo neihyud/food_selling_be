@@ -70,21 +70,25 @@ const getProductsInfo = async (query) => {
     const matchConditions = [{ status: 1 }]
 
     if (query?.search && query.search.trim() !== '') {
+      // const regex = new RegExp(query.search, 'i')
+      //     filter.name = { $regex: regex }
       matchConditions.push({
-        $and: [
-          { name: { $regex: query.search, $options: 'i' } },
-          { 'category.name': { $regex: query.search, $options: 'i' } }
+        $or: [
+          // { name: { $regex: query.search, $options: 'i' } },
+          { name: { $regex: new RegExp(query.search, 'i') } },
+          { 'category.name': { $regex: new RegExp(query.search, 'i') } }
+          // { 'category.name': { $regex: query.search, $options: 'i' } }
         ]
       })
     }
 
-    if (query.categoryId) {
+    if (query?.categoryId) {
       matchConditions.push({
         category_id: new mongoose.Types.ObjectId(query.categoryId)
       })
     }
 
-    if (query.productId) {
+    if (query?.productId) {
       matchConditions.push({
         _id: new mongoose.Types.ObjectId(query.productId)
       })

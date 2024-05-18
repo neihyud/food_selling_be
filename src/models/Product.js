@@ -11,7 +11,7 @@ const ProductSchema = new Schema(
     },
     name: {
       type: String,
-      required: true,
+      // required: true,
       index: true
     },
     description: {
@@ -28,17 +28,9 @@ const ProductSchema = new Schema(
       type: Number,
       default: 0
     },
-    quantity: {
-      type: Number,
-      default: 0
-    },
-    sku: {
-      type: String,
-      default: 0
-    },
     status: {
       type: Number,
-      default: 0
+      default: 1
     }
   },
   {

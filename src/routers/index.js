@@ -17,6 +17,7 @@ const { verifyAdmin } = require('../middlewares/verify-admin')
 
 router.use('/auth', authRouter)
 router.use('/category', categoryRouter)
+router.use('/setting', settingRouter)
 router.use('/', verifyToken)
 router.use('/admin', verifyAdmin)
 router.use('/admin/manage-product', verifyAdmin, adminProductRouter)
@@ -27,7 +28,6 @@ router.use('/admin/setting', verifyAdmin, settingRouter)
 router.use('/user', userRouter)
 router.use('/', orderRouter)
 router.use('/chat', chatRouter)
-router.use('/setting', settingRouter)
 router.use('/product', productRouter)
 
 module.exports = router

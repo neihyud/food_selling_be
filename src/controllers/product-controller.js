@@ -1,5 +1,4 @@
 /* eslint-disable camelcase */
-const { default: mongoose } = require('mongoose')
 const { BadRequestError } = require('../errors/bad-request-error')
 const Category = require('../models/Category')
 const Product = require('../models/Product')
@@ -28,87 +27,7 @@ const { getProductsInfo } = require('../services/advanced-query')
 const getProducts = async (req, res) => {
   const query = req.query
 
-  const filter = { status: 1 }
-  if (query.categoryId) {
-    filter.category_id = query.categoryId
-  }
-  if (query.search) {
-    const regex = new RegExp(query.search, 'i')
-    filter.name = { $regex: regex }
-  }
-  const matchConditions = []
-
-  if (query?.search && query.search.trim() !== '') {
-    matchConditions.push({
-      $or: [
-        { name: { $regex: query.search, $options: 'i' } },
-        { 'category.name': { $regex: query.search, $options: 'i' } }
-      ]
-    })
-  }
-
-  if (query.categoryId) {
-    matchConditions.push({
-      category_id: mongoose.Types.ObjectId(query.categoryId)
-    })
-  }
-
-  const products = await Product.aggregate([
-    {
-      $lookup: {
-        from: 'categories',
-        localField: 'category_id',
-        foreignField: '_id',
-        as: 'category'
-      }
-    },
-    {
-      $unwind: {
-        path: '$category',
-        preserveNullAndEmptyArrays: true
-      }
-    },
-    ...(matchConditions.length > 0 ? [{ $match: { $and: matchConditions } }] : []),
-    {
-      $lookup: {
-        from: 'reviews',
-        localField: '_id',
-        foreignField: 'product_id',
-        as: 'reviews'
-      }
-    },
-    {
-      $addFields: {
-        average_rating: {
-          $avg: '$reviews.rate'
-        },
-        reviews_count: {
-          $size: '$reviews'
-        }
-      }
-    },
-    {
-      $project: {
-        id: 1,
-        name: 1,
-        description: 1,
-        thumb_img: 1,
-        price: 1,
-        offer_price: 1,
-        quantity: 1,
-        sku: 1,
-        status: 1,
-        average_rating: 1,
-        reviews_count: 1,
-        category: {
-          id: '$category._id',
-          name: '$category.name',
-          description: '$category.description',
-          status: '$category.status'
-        }
-      }
-    }
-  ])
+  const products = await getProductsInfo(query)
 
   return res.status(200).send(products)
 }
@@ -248,6 +167,23 @@ const deleteCategory = async (req, res) => {
   return res.status(200).send({ success: true, data: { id, name: category.name } })
 }
 
+const insertManyProduct = async (req, res) => {
+  const { data, category_id } = req.body
+  const { type } = req.query
+
+  try {
+    if (type === 'product') {
+      const product = await Product.insertMany(data)
+      return res.status(200).send({ success: true, data: product })
+    } else {
+      const category = await Category.insertMany(data)
+      return res.status(200).send({ success: true, data: category })
+    }
+  } catch (error) {
+    return res.status(400).send({ success: false, error })
+  }
+}
+
 module.exports = {
   getProducts,
   getProduct,
@@ -259,5 +195,6 @@ module.exports = {
   updateCategory,
   deleteCategory,
   createCategory,
-  getProductByCategoryId
+  getProductByCategoryId,
+  insertManyProduct
 }
