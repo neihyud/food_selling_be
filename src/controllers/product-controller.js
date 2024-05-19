@@ -3,7 +3,7 @@ const { BadRequestError } = require('../errors/bad-request-error')
 const Category = require('../models/Category')
 const Product = require('../models/Product')
 const GoogleDriveService = require('../services/google-drive-service')
-const { getProductsInfo, getTopRateProduct, getTopPopularProduct } = require('../services/advanced-query')
+const { getProductsInfo, getTopRateProduct, getTopPopularProduct, getTopPopularProductWithCategoryId, getTopPopularProductUser } = require('../services/advanced-query')
 
 // const getProductsV2 = async (req, res) => {
 //   const query = req.query
@@ -159,6 +159,12 @@ const updateCategory = async (req, res) => {
 const deleteCategory = async (req, res) => {
   const { id } = req.params
 
+  const count = await Product.countDocuments({ category_id: id })
+
+  if (count) {
+    return res.status(400).send({ success: false, type: 'exist' })
+  }
+
   const category = await Category.findOneAndDelete({ _id: id })
   if (!category) {
     throw new BadRequestError('Not found category to update')
@@ -191,7 +197,21 @@ const getRateProduct = async (req, res) => {
 }
 
 const getTopProductPopular = async (req, res) => {
-  const products = await getTopPopularProduct()
+  const { limit = 0 } = req.query
+  const products = await getTopPopularProduct(limit)
+
+  return res.status(200).send({ success: true, data: products })
+}
+
+const getTopPopularProductWithCategory = async (req, res) => {
+  const { categoryId } = req.query
+  const products = await getTopPopularProductWithCategoryId(categoryId)
+
+  return res.status(200).send({ success: true, data: products })
+}
+
+const getTopPopularProductUserV2 = async (req, res) => {
+  const products = await getTopPopularProductUser()
 
   return res.status(200).send({ success: true, data: products })
 }
@@ -210,5 +230,7 @@ module.exports = {
   getProductByCategoryId,
   insertManyProduct,
   getRateProduct,
-  getTopProductPopular
+  getTopProductPopular,
+  getTopPopularProductWithCategory,
+  getTopPopularProductUserV2
 }

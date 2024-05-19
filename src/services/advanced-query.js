@@ -97,6 +97,12 @@ const getProductsInfo = async (query) => {
       })
     }
 
+    if (query?.productIds) {
+      matchConditions.push({
+        _id: { $in: query?.productIds }
+      })
+    }
+
     const products = await Product.aggregate([
       ...(matchConditions.length > 0 ? [{ $match: { $and: matchConditions } }] : []),
       {
@@ -198,7 +204,7 @@ const getTopRateProduct = async (query) => {
   return products
 }
 
-const getTopPopularProduct = async () => {
+const getTopPopularProduct = async (limit) => {
   try {
     const topProducts = await OrderItem.aggregate([
       // {
@@ -216,7 +222,7 @@ const getTopPopularProduct = async () => {
         $sort: { count: -1 }
       },
       {
-        $limit: 3
+        $limit: limit || 3
       },
       {
         $lookup: {
@@ -231,10 +237,10 @@ const getTopPopularProduct = async () => {
       },
       {
         $project: {
-          // _id: 0,
-          // product_id: '$_id',
+          _id: 0,
           count: 1,
           productDetails: {
+            _id: 1,
             name: 1,
             price: 1,
             offer_price: 1,
@@ -247,7 +253,24 @@ const getTopPopularProduct = async () => {
     return topProducts
   } catch (error) {
     console.error(error)
-    throw error
+    return []
+  }
+}
+
+const getTopPopularProductUser = async () => {
+  try {
+    const listProductPopular = await getTopPopularProduct(8)
+
+    const listProductId = listProductPopular?.map((product) => {
+      return product?.productDetails?._id
+    }) || []
+
+    const infoProduct = await getProductsInfo({ productIds: listProductId })
+
+    return infoProduct
+  } catch (error) {
+    console.error(error)
+    return []
   }
 }
 
@@ -278,10 +301,71 @@ const getTotalSubTotalOfCompletedOrders = async () => {
   }
 }
 
+const getTopPopularProductWithCategoryId = async (categoryId) => {
+  try {
+    const topProducts = await OrderItem.aggregate([
+      // {
+      //   $match: {
+      //     createdAt: { $gte: oneMonthAgo }
+      //   }
+      // },
+      {
+        $group: {
+          _id: '$product_id',
+          count: { $sum: 1 }
+        }
+      },
+      {
+        $lookup: {
+          from: 'products',
+          localField: '_id',
+          foreignField: '_id',
+          as: 'productDetails'
+        }
+      },
+      {
+        $unwind: '$productDetails'
+      },
+      {
+        $match: {
+          'productDetails.category_id': new mongoose.Types.ObjectId(categoryId)
+        }
+      },
+      {
+        $sort: { count: -1 }
+      },
+      {
+        $limit: 3
+      },
+      {
+        $project: {
+          _id: 0,
+          count: 1,
+          productDetails: {
+            _id: 1
+          }
+        }
+      }
+    ])
+
+    const listProductId = topProducts?.map((product) => {
+      return product?.productDetails?._id
+    }) || []
+
+    const infoProduct = await getProductsInfo({ productIds: listProductId })
+
+    return infoProduct
+  } catch (error) {
+    console.error(error)
+    return []
+  }
+}
+
 module.exports = {
   getProductsInfo,
   getTopRateProduct,
   getTopPopularProduct,
-  getTotalSubTotalOfCompletedOrders
-
+  getTotalSubTotalOfCompletedOrders,
+  getTopPopularProductWithCategoryId,
+  getTopPopularProductUser
 }

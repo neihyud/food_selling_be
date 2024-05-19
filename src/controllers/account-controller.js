@@ -54,7 +54,7 @@ exports.createStaff = async (req, res) => {
 
 exports.getListStaff = async (req, res) => {
   try {
-    const listStaff = await User.find({ role: 'user' }).select('username status')
+    const listStaff = await User.find({ role: 'staff' }).select('username status')
     return res.status(200).send(listStaff)
   } catch (error) {
     return res.status(400).send(error.message)

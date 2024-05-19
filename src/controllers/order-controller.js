@@ -219,3 +219,15 @@ exports.getInfoStatusOrder = async (req, res) => {
 
   return res.status(200).send({ orderCountSuccess, orderCountInProcess, orderCountDelivered, orderCountDeclined })
 }
+
+exports.getInfoStatusOrderUser = async (req, res) => {
+  const userId = req.userId
+
+  const orderCount = await Order.countDocuments({ user_id: userId })
+
+  const orderCountSuccess = await Order.countDocuments({ order_status: 'delivered', user_id: userId })
+  const orderCountInProcess = await Order.countDocuments({ order_status: 'pending', user_id: userId })
+  const orderCountDeclined = await Order.countDocuments({ order_status: 'declined', user_id: userId })
+
+  return res.status(200).send({ orderCount, orderCountSuccess, orderCountInProcess, orderCountDeclined })
+}

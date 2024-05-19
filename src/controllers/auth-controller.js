@@ -12,7 +12,7 @@ exports.login = async (req, res, next) => {
     throw new BadRequestError('Invalid username and/or password')
   }
 
-  const user = await User.findOne({ username })
+  const user = await User.findOne({ username, status: 1, role: 'user' })
   if (!user) {
     throw new BadRequestError('Username not found')
   }
