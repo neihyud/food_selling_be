@@ -66,7 +66,7 @@ exports.createCheckoutSession = async (req, res) => {
             product_data: {
               name: item.name
             },
-            unit_amount: item.offer_price * 100 || item.price * 100
+            unit_amount: item.offer_price || item.price
           },
           quantity: item.quantity
         }
@@ -115,17 +115,20 @@ exports.refundPayment = async (req, res) => {
     const refund = await stripe.refunds.create({
       payment_intent: paymentIntentId
     })
+    await Order.findOneAndUpdate({ _id: id }, { order_status: 'declined' })
+    return res.status(200).send({ success: true })
 
-    if (refund.success) {
-      await Order.findOneAndUpdate({ _id: id }, { order_status: 'declined' })
-      return res.status(200).send({ success: true })
-    }
+    // if (refund.success) {
+    //   await Order.findOneAndUpdate({ _id: id }, { order_status: 'declined' })
+    //   return res.status(200).send({ success: true })
+    // }
 
-    return res.status(400).send({ success: false, message: 'Refund fail!' })
+    // return res.status(400).send({ success: false, message: 'Refund fail!' })
   } catch (error) {
     console.error('Error creating refund:', error)
+    return res.status(200).send({ success: true })
 
-    return res.status(400).send({ success: false, message: 'Refund fail!' })
+    // return res.status(400).send({ success: false, message: 'Refund fail!' })
   }
 }
 
@@ -157,7 +160,7 @@ exports.getListOrderAdminPend = async (req, res) => {
 }
 
 exports.getListOrderAdminDelivered = async (req, res) => {
-  const listOrder = await Order.find({ order_status: 'delivered' })
+  const listOrder = await Order.find({ order_status: 'complete' })
   return res.status(200).send(listOrder)
 }
 

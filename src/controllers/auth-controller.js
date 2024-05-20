@@ -5,7 +5,7 @@ const config = require('../config/index')
 const AuthService = require('../services/auth-service')
 const { BadRequestError } = require('../errors/bad-request-error')
 
-exports.login = async (req, res, next) => {
+exports.loginUser = async (req, res, next) => {
   const { username = '', password = '' } = req.body
 
   if (!username || !password) {
@@ -14,6 +14,55 @@ exports.login = async (req, res, next) => {
 
   const user = await User.findOne({ username, status: 1, role: 'user' })
   if (!user) {
+    throw new BadRequestError('Username not found')
+  }
+
+  const passwordValid = await bcrypt.compare(password, user.password)
+
+  if (!passwordValid) {
+    throw new BadRequestError('Invalid password')
+  }
+
+  const payload = { userId: user._id }
+
+  if (user.role === 'admin') {
+    payload.role = 'admin'
+  }
+
+  try {
+    const accessToken = jwt.sign(
+      payload,
+      config.tokenSecret
+    )
+
+    res.status(200).json({
+      success: true,
+      message: 'Login successful',
+      accessToken,
+      user
+    })
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error
+
+    })
+  }
+}
+
+exports.login = async (req, res, next) => {
+  const { username = '', password = '' } = req.body
+
+  if (!username || !password) {
+    throw new BadRequestError('Invalid username and/or password')
+  }
+
+  const user = await User.findOne({ username, status: 1 })
+  if (!user) {
+    throw new BadRequestError('Username not found')
+  }
+
+  if (user.role === 'user') {
     throw new BadRequestError('Username not found')
   }
 
@@ -64,6 +113,19 @@ function randomText () {
   return result
 }
 
+const randomImage = [
+  '11EDIDN7cq6QoqAlxthkEZu8ESR6KlC4q',
+  '1RDpWGLhvcAN8DUSMY5usxmxT1Kgbz5Cd',
+  '1EqHfQ_wmzFL9NUtwQY8E3Ll9QvHidDmq',
+  '1Cfft5fE_MbWS6_FkbO4PT86d59AYHOdK'
+]
+
+const getRandomImg = () => {
+  const index = Math.floor(Math.random() * 4)
+
+  return `https://drive.google.com/thumbnail?id=${randomImage[index]}`
+}
+
 exports.register = async (req, res) => {
   const { username, password } = req.body
 
@@ -88,7 +150,13 @@ exports.register = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, salt)
 
-    const newUser = new User({ username, password: hashedPassword, role, name: randomText() })
+    const newUser = new User({
+      username,
+      password: hashedPassword,
+      role,
+      name: randomText(),
+      img: getRandomImg()
+    })
     await newUser.save()
 
     const accessToken = jwt.sign(
